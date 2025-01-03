@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Hash with Custom Output</title>
+</head>
+<body>
+    <h2>Password Hash with Custom Output</h2>
+    <input type="text" id="inputPassword" placeholder="Enter your password">
+    <button onclick="generateKey()">Generate Key</button>
+    <p>Generated Key (Custom Format):</p>
+    <textarea id="outputKey" rows="4" cols="50" readonly></textarea>
+
+    <script>
+        async function generateKey() {
+            const password = document.getElementById('inputPassword').value;
+
+            // Step 1: Extract the first 3 and last 3 characters of the password
+            const first3 = password.slice(0, 3);
+            const last3 = password.slice(-3);
+
+            // Step 2: Hash the password using SHA-512
+            const hashBuffer = await crypto.subtle.digest('SHA-512', new TextEncoder().encode(password));
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+            // Step 3: Define custom character set (lowercase, uppercase, digits, symbols)
+            const customChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/`~';
+            const charLength = customChars.length;
+
+            // Step 4: Map hash to custom character set
+            let customKey = hashArray.map(byte => customChars[byte % charLength]).join('');
+
+            // Step 5: Ensure minimum 100 characters
+            while (customKey.length < 100) {
+                customKey += customKey; // Duplicate the key
+            }
+            customKey = customKey.slice(0, 100); // Trim to exactly 100 characters
+
+            // Step 6: Add first 3 and last 3 characters of the password at the end
+            customKey = customKey + first3 + last3;
+
+            // Step 7: Output the result
+            document.getElementById('outputKey').value = customKey;
+        }
+    </script>
+</body>
+</html>
